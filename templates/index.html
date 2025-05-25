@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Verifique a segurança de endereços cripto contra bases de dados conhecidas">
+    <title>Verificador de Endereços Cripto | Segurança em Blockchain</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        :root {
+            --primary-color: #6f42c1;
+            --secondary-color: #6610f2;
+            --dark-color: #212529;
+            --light-color: #f8f9fa;
+            --success-color: #198754;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+        }
+        
+        body {
+            background-color: var(--light-color);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+            flex: 1;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+        }
+        
+        .header-icon {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .input-group {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .form-control {
+            padding: 1rem 1.5rem;
+            border: none;
+            font-size: 1.1rem;
+        }
+        
+        .form-control:focus {
+            box-shadow: none;
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border: none;
+            padding: 0 1.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+        
+        .btn-outline-secondary {
+            transition: all 0.3s ease;
+        }
+        
+        .btn-outline-secondary:hover {
+            transform: translateY(-2px);
+        }
+        
+        .alert {
+            border-radius: 8px;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        
+        .database-count {
+            background-color: rgba(111, 66, 193, 0.1);
+            color: var(--primary-color);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        footer {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-top: auto;
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 576px) {
+            .container {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+            
+            .card {
+                padding: 1.5rem !important;
+            }
+            
+            .form-control {
+                padding: 0.75rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card p-4 p-md-5">
+            <div class="text-center mb-4">
+                <div class="header-icon">
+                    <i class="bi bi-shield-lock"></i>
+                </div>
+                <h1 class="h3 fw-bold mb-3">Verificador de Endereços Cripto</h1>
+                <p class="text-muted mb-3">Verifique se um endereço está associado a serviços conhecidos</p>
+                <div class="database-count fade-in">
+                    <i class="bi bi-database"></i> {{ num_enderecos if num_enderecos else '0' }} endereços monitorados
+                </div>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  <div class="alert alert-{{ category if category != 'message' else 'info' }} alert-dismissible fade show" role="alert">
+                    <div class="d-flex align-items-center">
+                        <i class="bi {% if category == 'success' %}bi-check-circle-fill{% elif category == 'danger' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %} me-2"></i>
+                        <div>{{ message }}</div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                  </div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="/" class="mb-4 fade-in">
+                <div class="input-group">
+                    <input type="text" name="endereco" class="form-control" 
+                           placeholder="Digite um endereço Bitcoin, Ethereum ou outra criptomoeda..." 
+                           value="{{ endereco_pesquisado if endereco_pesquisado else '' }}" 
+                           aria-label="Endereço Cripto" required
+                           autocomplete="off" spellcheck="false">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="bi bi-search"></i> Verificar
+                    </button>
+                </div>
+                <div class="form-text mt-2 text-end">
+                    Exemplo: 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa
+                </div>
+            </form>
+
+            {% if resultado %}
+                {% if resultado.status == 'encontrado' %}
+                    <div class="alert alert-success fade-in" role="alert">
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-shield-check fs-3 me-3"></i>
+                            <div>
+                                <h4 class="alert-heading fw-bold">Endereço Identificado!</h4>
+                                <p><strong>Endereço:</strong> <code>{{ resultado.endereco }}</code></p>
+                                <p><strong>Associado a:</strong> <span class="badge bg-primary">{{ resultado.servico }}</span></p>
+                                <hr>
+                                <p class="mb-0"><small>Este endereço está registrado em nossa base de dados como pertencente ao serviço mencionado.</small></p>
+                            </div>
+                        </div>
+                    </div>
+                {% elif resultado.status == 'nao_encontrado' %}
+                    <div class="alert alert-warning fade-in" role="alert">
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-shield-exclamation fs-3 me-3"></i>
+                            <div>
+                                <h4 class="alert-heading fw-bold">Endereço Não Identificado</h4>
+                                <p><strong>Endereço:</strong> <code>{{ resultado.endereco }}</code></p>
+                                <hr>
+                                <p class="mb-0">Este endereço não foi encontrado em nossa base de dados de serviços conhecidos. Isso não significa que seja seguro - apenas que não está registrado em nossas fontes.</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endif %}
+            
+            <div class="text-center mt-4 fade-in">
+                <a href="{{ url_for('rebuild_cache_route') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-clockwise"></i> Atualizar Base de Dados
+                </a>
+                <div class="mt-3">
+                    <small class="text-muted">Última atualização: {{ now.strftime('%d/%m/%Y %H:%M') if now else 'N/A' }}</small>
+                </div>
+            </div>
+        </div>
+
+        <footer class="text-center mt-5 mb-3">
+            <p class="mb-1">&copy; {{ now.year if now else 2025 }} Verificador Cripto</p>
+            <p class="text-muted small">Ferramenta de verificação de segurança para endereços de criptomoedas</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    
+    <script>
+        // Adiciona efeito de foco automático no campo de pesquisa
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputField = document.querySelector('input[name="endereco"]');
+            if (inputField) {
+                inputField.focus();
+            }
+            
+            // Adiciona animação aos elementos
+            const elements = document.querySelectorAll('.fade-in');
+            elements.forEach((el, index) => {
+                el.style.animationDelay = `${index * 0.1}s`;
+            });
+        });
+    </script>
+</body>
+</html>
