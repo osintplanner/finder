@@ -212,9 +212,9 @@
             {% endif %}
             
             <div class="text-center mt-4 fade-in">
-                <a href="{{ url_for('rebuild_cache_route') }}" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-clockwise"></i> Atualizar Base de Dados
-                </a>
+                <a href="{{ url_for('data_update_info_route') }}" class="btn btn-outline-info btn-sm">
+    <i class="bi bi-info-circle"></i> Sobre Atualizações da Base
+</a>
                 <div class="mt-3">
                     <small class="text-muted">Última atualização: {{ now.strftime('%d/%m/%Y %H:%M') if now else 'N/A' }}</small>
                 </div>
